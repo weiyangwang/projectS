@@ -1,6 +1,5 @@
 import numpy as np
-import csv, sys
-import matplotlib.pyplot as plt
+import csv
 import plotly
 import plotly.graph_objs as go
 
@@ -10,31 +9,28 @@ import pandas as pd
 
 filename = 'XD edit suvery input template.xlsx - Cleaned Data.csv'
 
-reader = csv.reader(open(filename,'r',encoding="utf8"),delimiter=',')
-data=np.array([line for line in reader])
+reader = csv.DictReader(open(filename,'r',encoding="utf8"),delimiter=',')
+dataf=np.array([[line[k] for k in reader.fieldnames] for line in reader])
 
 try:
-    for index, x in np.ndenumerate(data):
+    for index, x in np.ndenumerate(dataf):
         if not x.isnumeric():
-                data[index] = 0
+                dataf[index] = np.nan
 except ValueError:
     print("ERROR!!!")
 
-data = data.astype(float)
+dataf = dataf.astype(float)
 
-correl = np.array([[np.corrcoef(data[:,i],data[:,j])[0,1] for i in range(len(data[0]))] for j in range(len(data[0]))])
-correl = np.around(correl, decimals=2)
-correl[np.isnan(correl)] = 0
-for index, x in np.ndenumerate(correl):
-    if index[0]==index[1]:
-        correl[index] = 0
+df = pd.DataFrame(dataf, columns=reader.fieldnames)
+correlf = df.corr()
+np.fill_diagonal(correlf.values, 0)
 
-data = [
+datacorrelf = [
     go.Surface(
-        z=correl
+        z=np.array(correlf)
     )
 ]
-layout = go.Layout(
+layoutcorrelf = go.Layout(
     title='Correlations between Qns',
     autosize=False,
     width=1000,
@@ -44,7 +40,19 @@ layout = go.Layout(
         r=50,
         b=65,
         t=90
+    ),
+    xaxis = dict(
+            ticktext = reader.fieldnames,
+            tickvals = [i for i, val in enumerate(reader.fieldnames)],
+            tickangle = 45,
+            showticklabels = True
+    ),
+    yaxis = dict(
+            ticktext = reader.fieldnames,
+            tickvals = [i for i, val in enumerate(reader.fieldnames)],
+            tickangle = 45,
+            showticklabels = True
     )
 )
-fig = go.Figure(data=data, layout=layout)
-plotly.offline.plot(fig)
+figf = go.Figure(data=datacorrelf, layout=layoutcorrelf)
+plotly.offline.plot(figf, filename='correlation2D.html')
