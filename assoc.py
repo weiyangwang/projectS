@@ -28,6 +28,9 @@ df = pd.DataFrame(dataf, columns=reader.fieldnames)
 correlf = df.corr()
 np.fill_diagonal(correlf.values, 0)
 
+corrheight = 1000
+corrwidth = 1000
+
 datacorrelf = [
     go.Surface(
         z=np.array(correlf)
@@ -36,8 +39,8 @@ datacorrelf = [
 layoutcorrelf = go.Layout(
     title='Correlations between Qns',
     autosize=False,
-    width=1000,
-    height=1000,
+    width=corrwidth,
+    height=corrheight,
     margin=dict(
         l=65,
         r=50,
@@ -57,6 +60,7 @@ layoutcorrelf = go.Layout(
             showticklabels = True
     )
 )
+
 figf = go.Figure(data=datacorrelf, layout=layoutcorrelf)
 corr_plot_url = plotly.offline.plot(figf, filename='correlation2D', auto_open=False)
 print(corr_plot_url)
@@ -114,8 +118,10 @@ for i in range(0,qns.shape[0]):
     figarr.append_trace(trace2, int((i/2)+1), (i%2)+1)   
     figarr['layout']['xaxis{}'.format(i+1)].update(title='Qn: '+reader.fieldnames[qns[i,0]])
     figarr['layout']['yaxis{}'.format(i+1)].update(title='Qn: '+reader.fieldnames[qns[i,1]])
-   
-figarr['layout'].update(height=500*(grid[0]+grid[1]), width=500*2, title='Correlations')
+
+multiheight = 500*(grid[0]+grid[1])
+multiwidth = 500*2
+figarr['layout'].update(height=multiheight, width=multiwidth, title='Correlations')
 multi_plot_url = plotly.offline.plot(figarr, filename='multiplot', auto_open=False)
 print(multi_plot_url)
 
@@ -130,15 +136,15 @@ html_string = '''
 
         <!-- *** Section 1 *** --->
         <h2>Section 1: Overall correlation between all each question pair</h2>
-        <iframe width="1000" height="1000" frameborder="0" seamless="seamless" scrolling="no" \
-src="''' + corr_plot_url + '''?width=800&height=1000"></iframe>
+        <iframe width="'''+str(corrwidth)+'''" height="'''+str(corrheight)+'''" frameborder="0" seamless="seamless" scrolling="no" \
+src="''' + corr_plot_url + '''?width='''+str(corrwidth)+'''&height='''+str(corrheight)+'''"></iframe>
         <p>Pearson product-moment correlation between each pair of questions. \
         The xy-plane are the question pairs while the z-axis is the strength of the correlation.</p>
         
         <!-- *** Section 2 *** --->
         <h2>Section 2: Scatter plots and correlations between interesting question pairs</h2>
-        <iframe width="1000" height="3000" frameborder="0" seamless="seamless" scrolling="no" \
-src="''' + multi_plot_url + '''?width=1000&height=3000"></iframe>
+        <iframe width="'''+str(multiwidth)+'''" height="'''+str(multiheight)+'''" frameborder="0" seamless="seamless" scrolling="no" \
+src="''' + multi_plot_url + '''?width='''+str(multiwidth)+'''&height=+str(multiheight)+"></iframe>
         <p>Scatter and contour plots between each interesting question pair. \
         A ordinary least squares (OLS) fit is made to quantify the strength of the correlation by the gradient m.</p>
     </body>
